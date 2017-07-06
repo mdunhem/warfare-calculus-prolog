@@ -22,7 +22,6 @@ constant(ka, 0.25).
 /**
  * (A-1)
  */
-attackerGroundLethality(0, 330000).
 attackerGroundLethality(1, 330000). % Base case
 attackerGroundLethality(Day, Lethality) :-
     PreviousDay is Day - 1,
@@ -34,7 +33,6 @@ attackerGroundLethality(Day, Lethality) :-
 /**
  * (A-2)
  */
-defenderGroundLethality(0, 200000).
 defenderGroundLethality(1, 200000). % Base case
 defenderGroundLethality(Day, Lethality) :-
     PreviousDay is Day - 1,
