@@ -62,11 +62,12 @@ defenderWithdrawlRate(Day, WithdrawlRate) :-
     PreviousDay is Day - 1,
     constant(adt, Adt),
     defenderTotalGroundLethalityAttritionRate(PreviousDay, DefenderTotalGroundLethalityAttritionRate),
-    DefenderTotalGroundLethalityAttritionRate > Adt ->
+    ( DefenderTotalGroundLethalityAttritionRate > Adt ->
         constant(wMax, WMax),
         defenderWithdrawlRate(PreviousDay, PreviousWithdrawlRate),
         WithdrawlRate is PreviousWithdrawlRate + (((WMax - PreviousWithdrawlRate) / (1 - Adt) * (DefenderTotalGroundLethalityAttritionRate - Adt)));
-        WithdrawlRate is 0.
+        WithdrawlRate is 0
+    ).
 
 /**
  * (A-5)
