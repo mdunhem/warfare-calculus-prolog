@@ -74,7 +74,6 @@ defenderWithdrawlRate(Day, WithdrawlRate) :-
  */
 defenderTotalGroundLethalityAttritionRate(Day, AttritionRate) :-
     NextDay is Day + 1,
-    writeln(Day),
     defenderGroundLethality(Day, CurrentLethality),
     defenderGroundLethality(NextDay, TomorrowLethality),
     AttritionRate is (CurrentLethality - TomorrowLethality) / CurrentLethality.
