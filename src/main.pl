@@ -2,9 +2,7 @@
 % CS 355 - Summer 2017
 % Assignment 2 - THE CALCULUS OF CONVENTIONAL WAR: DYNAMIC ANALYSIS WITHOUT LANCHESTER THEORY
 
-:- include('default-variables').
-:- include('ground-forces').
-:- include('air-forces').
+:- include('equations').
 
 main :-
     ( current_prolog_flag(os_argv, Argv) -> true; current_prolog_flag(argv, Argv) ),
