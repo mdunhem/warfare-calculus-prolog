@@ -1,26 +1,5 @@
 
-% attackerGroundLethalitySurvivingAtStartOfDay(T) :- true.
-% attackerGroundProsecutionRatePerDay(T) :- true.
-% attackerGroundToGroundLethalityAttritionRatePerDay(T) :- true.
-% attackerTotalGroundLethalityAttritionRatePerDay(T) :- true.
-%
-% dGL(T) :- true. % Defender's ground lethality surviving at start of Tth day
-
-% result(
-%     day(
-%         defenderGroundLethality,
-%         attackerGroundLethality,
-%         attackerGroundProsecutionRate,
-%         attackerAttritionRate,
-%         defenderWithdrawlRate,
-%         defenderAttritionRate
-%         % displacementOfTheFront,
-%         % defenderAircraft,
-%         % attackerAircraft
-%     )
-% ).
-
-constant(wMax, 20.0).
+constant(w_max, 20.0).
 constant(p, 1.5).
 constant(l, 47490).
 constant(v, 1200).
@@ -37,15 +16,15 @@ constant(ka, 0.25).
  * (A-1)
  */
 attacker_ground_lethality_list([330000]).
-attackerGroundLethality(Day, Lethality) :-
+attacker_ground_lethality(Day, Lethality) :-
     attacker_ground_lethality_list(CurrentList),
     ( nth1(Day, CurrentList, CurrentLethality) ->
         Lethality is CurrentLethality;
 
         PreviousDay is Day - 1,
-        attackerAttritionRate(PreviousDay, Attrition),
-        dCAS(PreviousDay, AttackerGroundLethalityKilled),
-        attackerGroundLethality(PreviousDay, PreviousLethality),
+        attacker_attrition_rate(PreviousDay, Attrition),
+        d_CAS(PreviousDay, AttackerGroundLethalityKilled),
+        attacker_ground_lethality(PreviousDay, PreviousLethality),
         Lethality is PreviousLethality * (1 - Attrition) - AttackerGroundLethalityKilled,
         append(CurrentList, [Lethality], NewList),
         asserta(attacker_ground_lethality_list(NewList))
@@ -55,17 +34,17 @@ attackerGroundLethality(Day, Lethality) :-
  * (A-2)
  */
 defender_ground_lethality_list([200000]).
-defenderGroundLethality(Day, Lethality) :-
+defender_ground_lethality(Day, Lethality) :-
     defender_ground_lethality_list(CurrentList),
     ( nth1(Day, CurrentList, CurrentLethality) ->
         Lethality is CurrentLethality;
 
         PreviousDay is Day - 1,
         constant(p, P),
-        attackerAttritionRate(PreviousDay, Attrition),
-        aCAS(PreviousDay, DefenderGroundLethalityKilled),
-        defenderGroundLethality(PreviousDay, PreviousDefenderLethality),
-        attackerGroundLethality(PreviousDay, PreviousAttackerLethality),
+        attacker_attrition_rate(PreviousDay, Attrition),
+        a_CAS(PreviousDay, DefenderGroundLethalityKilled),
+        defender_ground_lethality(PreviousDay, PreviousDefenderLethality),
+        attacker_ground_lethality(PreviousDay, PreviousAttackerLethality),
         Lethality is PreviousDefenderLethality - ((Attrition / P) * PreviousAttackerLethality) - DefenderGroundLethalityKilled,
         append(CurrentList, [Lethality], NewList),
         asserta(defender_ground_lethality_list(NewList))
@@ -74,23 +53,23 @@ defenderGroundLethality(Day, Lethality) :-
 /**
  * (A-3)
  */
-attackerAttritionRate(Day, AttritionRate) :-
-    attackerProsecutionRate(Day, ProsecutionRate),
-    defenderWithdrawlRate(Day, WithdrawlRate),
-    constant(wMax, WMax),
+attacker_attrition_rate(Day, AttritionRate) :-
+    attacker_prosecution_rate(Day, ProsecutionRate),
+    defender_withdrawl_rate(Day, WithdrawlRate),
+    constant(w_max, WMax),
     AttritionRate is ProsecutionRate * (1 - (WithdrawlRate / WMax)).
 
 /**
  * (A-4)
  */
-defenderWithdrawlRate(1, 0).
-defenderWithdrawlRate(Day, WithdrawlRate) :-
+defender_withdrawl_rate(1, 0).
+defender_withdrawl_rate(Day, WithdrawlRate) :-
     PreviousDay is Day - 1,
     constant(adt, Adt),
-    defenderTotalGroundLethalityAttritionRate(PreviousDay, DefenderTotalGroundLethalityAttritionRate),
+    defender_total_ground_lethality_attrition_rate(PreviousDay, DefenderTotalGroundLethalityAttritionRate),
     ( DefenderTotalGroundLethalityAttritionRate > Adt ->
-        constant(wMax, WMax),
-        defenderWithdrawlRate(PreviousDay, PreviousWithdrawlRate),
+        constant(w_max, WMax),
+        defender_withdrawl_rate(PreviousDay, PreviousWithdrawlRate),
         WithdrawlRate is PreviousWithdrawlRate + (((WMax - PreviousWithdrawlRate) / (1 - Adt) * (DefenderTotalGroundLethalityAttritionRate - Adt)));
         WithdrawlRate is 0
     ).
@@ -98,30 +77,30 @@ defenderWithdrawlRate(Day, WithdrawlRate) :-
 /**
  * (A-5)
  */
-defenderTotalGroundLethalityAttritionRate(Day, AttritionRate) :-
+defender_total_ground_lethality_attrition_rate(Day, AttritionRate) :-
     NextDay is Day + 1,
-    defenderGroundLethality(Day, CurrentLethality),
-    defenderGroundLethality(NextDay, TomorrowLethality),
+    defender_ground_lethality(Day, CurrentLethality),
+    defender_ground_lethality(NextDay, TomorrowLethality),
     AttritionRate is (CurrentLethality - TomorrowLethality) / CurrentLethality.
 
 /**
 * (A-6)
 */
-attackerProsecutionRate(1, 0.02). % Base case
-attackerProsecutionRate(Day, ProsecutionRate) :-
+attacker_prosecution_rate(1, 0.02). % Base case
+attacker_prosecution_rate(Day, ProsecutionRate) :-
     PreviousDay is Day - 1,
     constant(aat, AaT),
-    attackerProsecutionRate(PreviousDay, PreviousProsecutionRate),
-    attackerTotalGroundLethalityAttritionRate(PreviousDay, AttackerTotalGroundLethalityAttritionRate),
+    attacker_prosecution_rate(PreviousDay, PreviousProsecutionRate),
+    attacker_total_ground_lethality_attrition_rate(PreviousDay, AttackerTotalGroundLethalityAttritionRate),
     ProsecutionRate is PreviousProsecutionRate - (((AaT - PreviousProsecutionRate) / AaT) * (AttackerTotalGroundLethalityAttritionRate - AaT)).
 
 /**
 * (A-7)
 */
-attackerTotalGroundLethalityAttritionRate(Day, AttritionRate) :-
+attacker_total_ground_lethality_attrition_rate(Day, AttritionRate) :-
     NextDay is Day + 1,
-    attackerGroundLethality(Day, CurrentLethality),
-    attackerGroundLethality(NextDay, TomorrowLethality),
+    attacker_ground_lethality(Day, CurrentLethality),
+    attacker_ground_lethality(NextDay, TomorrowLethality),
     AttritionRate is (CurrentLethality - TomorrowLethality) / CurrentLethality.
 
 /**
@@ -137,50 +116,47 @@ attackerTotalGroundLethalityAttritionRate(Day, AttritionRate) :-
 /**
  * (A-10)
  */
-dCAS(Day, CAS) :-
-    % PreviousDay is Day - 1,
+d_CAS(Day, CAS) :-
     constant(l, L),
     constant(v, V),
     constant(ada, Ada),
     constant(sd, Sd),
     constant(kd, Kd),
-    defenderSurvivingCAS(Day, DSurvivingCAS),
+    defender_surviving_CAS(Day, DSurvivingCAS),
     CAS is (L / V) * DSurvivingCAS * Kd * (((1 - ((1 - Ada) ** (Sd + 1))) / Ada) - 1).
-    % defenderSurvivingCAS(1, DSurvivingCAS),
-    % CAS is (L / V) * DSurvivingCAS * ((1 - Ada) ** (Sd * PreviousDay)) * Kd * (((1 - ((1 - Ada) ** (Sd + 1))) / Ada) - 1).
 
 /**
  * (A-11)
  */
-aCAS(Day, CAS) :-
+a_CAS(Day, CAS) :-
     constant(l, L),
     constant(v, V),
     constant(aaa, Aaa),
     constant(sa, Sa),
     constant(ka, Ka),
-    attackerSurvivingCAS(Day, DSurvivingCAS),
+    attacker_surviving_CAS(Day, DSurvivingCAS),
     CAS is (L / V) * DSurvivingCAS * Ka * (((1 - ((1 - Aaa) ** (Sa + 1))) / Aaa) - 1).
 
 /**
  * (A-12)
  */
-defenderSurvivingCAS(1, 300). % Base case
-defenderSurvivingCAS(Day, DSurvivingCAS) :-
+defender_surviving_CAS(1, 300). % Base case
+defender_surviving_CAS(Day, DSurvivingCAS) :-
     PreviousDay is Day - 1,
     constant(ada, Ada),
     constant(sd, Sd),
-    defenderSurvivingCAS(1, DSurvivingCASOnDayOne),
+    defender_surviving_CAS(1, DSurvivingCASOnDayOne),
     DSurvivingCAS is DSurvivingCASOnDayOne * ((1 - Ada) ** (Sd * PreviousDay)).
 
 /**
  * (A-13)
  */
- attackerSurvivingCAS(1, 250). % Base case
- attackerSurvivingCAS(Day, DSurvivingCAS) :-
+ attacker_surviving_CAS(1, 250). % Base case
+ attacker_surviving_CAS(Day, DSurvivingCAS) :-
      PreviousDay is Day - 1,
      constant(aaa, Aaa),
      constant(sa, Sa),
-     attackerSurvivingCAS(1, DSurvivingCASOnDayOne),
+     attacker_surviving_CAS(1, DSurvivingCASOnDayOne),
      DSurvivingCAS is DSurvivingCASOnDayOne * ((1 - Aaa) ** (Sa * PreviousDay)).
 
 /****************** TODO: Remove Test Code *******************/
@@ -188,7 +164,7 @@ defenderSurvivingCAS(Day, DSurvivingCAS) :-
 count(Num) :-
     ( Num < 58 ->
         NextNum is Num + 1,
-        attackerGroundLethality(Num, Lethality),
+        attacker_ground_lethality(Num, Lethality),
         writeln(Lethality),
         count(NextNum);
         true
@@ -199,7 +175,7 @@ groundForcesTest(T) :-
     % resultList([[23, 33]], InitList, NewList),
     % nth0(1, NewList, Element),
     % writeln(Element),
-    % attackerGroundLethality(4, Lethality),
+    % attacker_ground_lethality(4, Lethality),
     % myTestLen(3, Count),
     count(1),
     write('Yo - '),
