@@ -53,25 +53,38 @@ defender_ground_lethality(Day, Lethality) :-
 /**
  * (A-3)
  */
+attacker_attrition_rate_list([]).
 attacker_attrition_rate(Day, AttritionRate) :-
-    attacker_prosecution_rate(Day, ProsecutionRate),
-    defender_withdrawl_rate(Day, WithdrawlRate),
-    constant(w_max, WMax),
-    AttritionRate is ProsecutionRate * (1 - (WithdrawlRate / WMax)).
+    attacker_attrition_rate_list(CurrentList),
+    ( nth1(Day, CurrentList, CurrentAttritionRate) ->
+        AttritionRate is CurrentAttritionRate;
+        attacker_prosecution_rate(Day, ProsecutionRate),
+        defender_withdrawl_rate(Day, WithdrawlRate),
+        constant(w_max, WMax),
+        AttritionRate is ProsecutionRate * (1 - (WithdrawlRate / WMax)),
+        append(CurrentList, [AttritionRate], NewList),
+        asserta(attacker_attrition_rate_list(NewList))
+    ).
 
 /**
  * (A-4)
  */
-defender_withdrawl_rate(1, 0).
+defender_withdrawl_rate_list([0]).
 defender_withdrawl_rate(Day, WithdrawlRate) :-
-    PreviousDay is Day - 1,
-    constant(adt, Adt),
-    defender_total_ground_lethality_attrition_rate(PreviousDay, DefenderTotalGroundLethalityAttritionRate),
-    ( DefenderTotalGroundLethalityAttritionRate > Adt ->
-        constant(w_max, WMax),
-        defender_withdrawl_rate(PreviousDay, PreviousWithdrawlRate),
-        WithdrawlRate is PreviousWithdrawlRate + (((WMax - PreviousWithdrawlRate) / (1 - Adt) * (DefenderTotalGroundLethalityAttritionRate - Adt)));
-        WithdrawlRate is 0
+    defender_withdrawl_rate_list(CurrentList),
+    ( nth1(Day, CurrentList, CurrentWithdrawlRate) ->
+        WithdrawlRate is CurrentWithdrawlRate;
+        PreviousDay is Day - 1,
+        constant(adt, Adt),
+        defender_total_ground_lethality_attrition_rate(PreviousDay, DefenderTotalGroundLethalityAttritionRate),
+        ( DefenderTotalGroundLethalityAttritionRate > Adt ->
+            constant(w_max, WMax),
+            defender_withdrawl_rate(PreviousDay, PreviousWithdrawlRate),
+            WithdrawlRate is PreviousWithdrawlRate + (((WMax - PreviousWithdrawlRate) / (1 - Adt) * (DefenderTotalGroundLethalityAttritionRate - Adt)));
+            WithdrawlRate is 0
+        ),
+        append(CurrentList, [WithdrawlRate], NewList),
+        asserta(defender_withdrawl_rate_list(NewList))
     ).
 
 /**
@@ -140,46 +153,90 @@ a_CAS(Day, CAS) :-
 /**
  * (A-12)
  */
-defender_surviving_CAS(1, 300). % Base case
+% defender_surviving_CAS(1, 300). % Base case
+defender_surviving_CAS_list([300]).
 defender_surviving_CAS(Day, DSurvivingCAS) :-
-    PreviousDay is Day - 1,
-    constant(ada, Ada),
-    constant(sd, Sd),
-    defender_surviving_CAS(1, DSurvivingCASOnDayOne),
-    DSurvivingCAS is DSurvivingCASOnDayOne * ((1 - Ada) ** (Sd * PreviousDay)).
+    defender_surviving_CAS_list(CurrentList),
+    ( nth1(Day, CurrentList, CurrentDSurvivingCAS) ->
+        DSurvivingCAS is CurrentDSurvivingCAS;
+        PreviousDay is Day - 1,
+        constant(ada, Ada),
+        constant(sd, Sd),
+        defender_surviving_CAS(1, DSurvivingCASOnDayOne),
+        DSurvivingCAS is DSurvivingCASOnDayOne * ((1 - Ada) ** (Sd * PreviousDay)),
+        append(CurrentList, [DSurvivingCAS], NewList),
+        asserta(defender_surviving_CAS_list(NewList))
+    ).
 
 /**
  * (A-13)
  */
- attacker_surviving_CAS(1, 250). % Base case
- attacker_surviving_CAS(Day, DSurvivingCAS) :-
-     PreviousDay is Day - 1,
-     constant(aaa, Aaa),
-     constant(sa, Sa),
-     attacker_surviving_CAS(1, DSurvivingCASOnDayOne),
-     DSurvivingCAS is DSurvivingCASOnDayOne * ((1 - Aaa) ** (Sa * PreviousDay)).
+% attacker_surviving_CAS(1, 250). % Base case
+attacker_surviving_CAS_list([250]).
+attacker_surviving_CAS(Day, ASurvivingCAS) :-
+    attacker_surviving_CAS_list(CurrentList),
+    ( nth1(Day, CurrentList, CurrentASurvivingCAS) ->
+        ASurvivingCAS is CurrentASurvivingCAS;
+        PreviousDay is Day - 1,
+        constant(aaa, Aaa),
+        constant(sa, Sa),
+        attacker_surviving_CAS(1, ASurvivingCASOnDayOne),
+        ASurvivingCAS is ASurvivingCASOnDayOne * ((1 - Aaa) ** (Sa * PreviousDay)),
+        append(CurrentList, [ASurvivingCAS], NewList),
+        asserta(attacker_surviving_CAS_list(NewList))
+    ).
 
 /****************** TODO: Remove Test Code *******************/
 
 count(Num) :-
     ( Num < 58 ->
         NextNum is Num + 1,
-        attacker_ground_lethality(Num, Lethality),
-        writeln(Lethality),
+        attacker_ground_lethality(Num, _),
+        defender_ground_lethality(Num, _),
+        defender_surviving_CAS(Num, _),
+        attacker_surviving_CAS(Num, _),
+        defender_withdrawl_rate(Num, _),
+        attacker_attrition_rate(Num, _),
         count(NextNum);
         true
     ).
 
+print_attacker_ground_lethality([], _, _, _, _, _).
+print_attacker_ground_lethality(
+  [DefenderHead | DefenderTail],
+  [AttackerHead | AttackerTail],
+  [AttackerAttritionHead | AttackerAttritionTail],
+  [WithdrawlHead | WithdrawlTail],
+  [DCASHead | DCASTail],
+  [ACASHead | ACASTail]) :-
+    AttackerAttritionValue is AttackerAttritionHead * 100,
+  format(
+    '|~t~D~t~16||~t~D~t~32||~t~3f~t~48||~t~1f~t~64||~t~D~t~80||~t~D~t~96||~n',
+    [round(DefenderHead), round(AttackerHead), AttackerAttritionValue, WithdrawlHead, round(DCASHead), round(ACASHead)]
+  ),
+  format('+~`-t~96|+ ~n', []),
+  print_attacker_ground_lethality(DefenderTail, AttackerTail, AttackerAttritionTail, WithdrawlTail, DCASTail, ACASTail).
+
+print_test :-
+    format('+~`-t~96|+ ~n', []),
+    format(
+      % '|~t~s~t~21||~t~s~t~42||~t~s~t~63||~t~s~t~84||~t~s~t~105||~t~s~t~96||~n',
+      '|~t~s~t~16||~t~s~t~32||~t~s~t~48||~t~s~t~64||~t~s~t~80||~t~s~t~96||~n',
+      ['Def Lethality','Att Lethality', 'Att Attrition', 'W Rate', 'Def CAS', 'Att CAS']
+    ),
+    format('+~`-t~96|+ ~n', []),
+    attacker_ground_lethality_list(AttackerGroundLethality),
+    defender_ground_lethality_list(DefenderGroundLethality),
+    attacker_surviving_CAS_list(ACAS),
+    defender_surviving_CAS_list(DCAS),
+    defender_withdrawl_rate_list(WithdrawlRate),
+    attacker_attrition_rate_list(AttackerAttrition),
+    print_attacker_ground_lethality(DefenderGroundLethality, AttackerGroundLethality, AttackerAttrition, WithdrawlRate, DCAS, ACAS).
+
 groundForcesTest(T) :-
-    % constant(initList, InitList),
-    % resultList([[23, 33]], InitList, NewList),
-    % nth0(1, NewList, Element),
-    % writeln(Element),
-    % attacker_ground_lethality(4, Lethality),
-    % myTestLen(3, Count),
     count(1),
+    print_test,
     write('Yo - '),
     write(T), nl.
-    % writeln(Lethality).
 
 /****************** Test Code *******************/
