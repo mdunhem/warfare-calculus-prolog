@@ -6,6 +6,20 @@
 %
 % dGL(T) :- true. % Defender's ground lethality surviving at start of Tth day
 
+% result(
+%     day(
+%         defenderGroundLethality,
+%         attackerGroundLethality,
+%         attackerGroundProsecutionRate,
+%         attackerAttritionRate,
+%         defenderWithdrawlRate,
+%         defenderAttritionRate
+%         % displacementOfTheFront,
+%         % defenderAircraft,
+%         % attackerAircraft
+%     )
+% ).
+
 constant(wMax, 20.0).
 constant(p, 1.5).
 constant(l, 47490).
@@ -22,26 +36,40 @@ constant(ka, 0.25).
 /**
  * (A-1)
  */
-attackerGroundLethality(1, 330000). % Base case
+attacker_ground_lethality_list([330000]).
 attackerGroundLethality(Day, Lethality) :-
-    PreviousDay is Day - 1,
-    attackerAttritionRate(PreviousDay, Attrition),
-    dCAS(PreviousDay, AttackerGroundLethalityKilled),
-    attackerGroundLethality(PreviousDay, PreviousLethality),
-    Lethality is PreviousLethality * (1 - Attrition) - AttackerGroundLethalityKilled.
+    attacker_ground_lethality_list(CurrentList),
+    ( nth1(Day, CurrentList, CurrentLethality) ->
+        Lethality is CurrentLethality;
+
+        PreviousDay is Day - 1,
+        attackerAttritionRate(PreviousDay, Attrition),
+        dCAS(PreviousDay, AttackerGroundLethalityKilled),
+        attackerGroundLethality(PreviousDay, PreviousLethality),
+        Lethality is PreviousLethality * (1 - Attrition) - AttackerGroundLethalityKilled,
+        append(CurrentList, [Lethality], NewList),
+        asserta(attacker_ground_lethality_list(NewList))
+    ).
 
 /**
  * (A-2)
  */
-defenderGroundLethality(1, 200000). % Base case
+defender_ground_lethality_list([200000]).
 defenderGroundLethality(Day, Lethality) :-
-    PreviousDay is Day - 1,
-    constant(p, P),
-    attackerAttritionRate(PreviousDay, Attrition),
-    aCAS(PreviousDay, DefenderGroundLethalityKilled),
-    defenderGroundLethality(PreviousDay, PreviousDefenderLethality),
-    attackerGroundLethality(PreviousDay, PreviousAttackerLethality),
-    Lethality is PreviousDefenderLethality - ((Attrition / P) * PreviousAttackerLethality) - DefenderGroundLethalityKilled.
+    defender_ground_lethality_list(CurrentList),
+    ( nth1(Day, CurrentList, CurrentLethality) ->
+        Lethality is CurrentLethality;
+
+        PreviousDay is Day - 1,
+        constant(p, P),
+        attackerAttritionRate(PreviousDay, Attrition),
+        aCAS(PreviousDay, DefenderGroundLethalityKilled),
+        defenderGroundLethality(PreviousDay, PreviousDefenderLethality),
+        attackerGroundLethality(PreviousDay, PreviousAttackerLethality),
+        Lethality is PreviousDefenderLethality - ((Attrition / P) * PreviousAttackerLethality) - DefenderGroundLethalityKilled,
+        append(CurrentList, [Lethality], NewList),
+        asserta(defender_ground_lethality_list(NewList))
+    ).
 
 /**
  * (A-3)
@@ -157,11 +185,25 @@ defenderSurvivingCAS(Day, DSurvivingCAS) :-
 
 /****************** TODO: Remove Test Code *******************/
 
+count(Num) :-
+    ( Num < 58 ->
+        NextNum is Num + 1,
+        attackerGroundLethality(Num, Lethality),
+        writeln(Lethality),
+        count(NextNum);
+        true
+    ).
+
 groundForcesTest(T) :-
-    attackerGroundLethality(3, Lethality),
+    % constant(initList, InitList),
+    % resultList([[23, 33]], InitList, NewList),
+    % nth0(1, NewList, Element),
+    % writeln(Element),
+    % attackerGroundLethality(4, Lethality),
     % myTestLen(3, Count),
+    count(1),
     write('Yo - '),
-    write(T), nl,
-    writeln(Lethality).
+    write(T), nl.
+    % writeln(Lethality).
 
 /****************** Test Code *******************/
