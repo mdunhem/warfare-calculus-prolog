@@ -90,11 +90,18 @@ defender_withdrawl_rate(Day, WithdrawlRate) :-
 /**
  * (A-5)
  */
+defender_total_ground_lethality_attrition_rate_list([]).
 defender_total_ground_lethality_attrition_rate(Day, AttritionRate) :-
-    NextDay is Day + 1,
-    defender_ground_lethality(Day, CurrentLethality),
-    defender_ground_lethality(NextDay, TomorrowLethality),
-    AttritionRate is (CurrentLethality - TomorrowLethality) / CurrentLethality.
+    defender_total_ground_lethality_attrition_rate_list(CurrentList),
+    ( nth1(Day, CurrentList, CurrentAttritionRate) ->
+        AttritionRate is CurrentAttritionRate;
+        NextDay is Day + 1,
+        defender_ground_lethality(Day, CurrentLethality),
+        defender_ground_lethality(NextDay, TomorrowLethality),
+        AttritionRate is (CurrentLethality - TomorrowLethality) / CurrentLethality,
+        append(CurrentList, [AttritionRate], NewList),
+        asserta(defender_total_ground_lethality_attrition_rate_list(NewList))
+    ).
 
 /**
 * (A-6)
@@ -166,7 +173,6 @@ a_CAS(Day, CAS) :-
 /**
  * (A-12)
  */
-% defender_surviving_CAS(1, 300). % Base case
 defender_surviving_CAS_list([300]).
 defender_surviving_CAS(Day, DSurvivingCAS) :-
     defender_surviving_CAS_list(CurrentList),
@@ -184,7 +190,6 @@ defender_surviving_CAS(Day, DSurvivingCAS) :-
 /**
  * (A-13)
  */
-% attacker_surviving_CAS(1, 250). % Base case
 attacker_surviving_CAS_list([250]).
 attacker_surviving_CAS(Day, ASurvivingCAS) :-
     attacker_surviving_CAS_list(CurrentList),
