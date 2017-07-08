@@ -4,7 +4,7 @@
  * Assignment 2 - THE CALCULUS OF CONVENTIONAL WAR: DYNAMIC ANALYSIS WITHOUT LANCHESTER THEORY
  *
  * All of the necessary equations listed in the paper are represented here. They are labeled
- * with the same labeles used in the paper. Each one stores it's results in a list in order
+ * with the same labels used in the paper. Each one stores it's results in a list in order
  * to prevent an excessively large call stack since each equation will be called recursively.
  * This way, the calculation will only be performed once per "Day" (day of warfare.)
  *
