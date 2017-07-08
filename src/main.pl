@@ -16,6 +16,7 @@ main :-
 
 main(days, Rest) :-
     Rest = [Days], atom_number(Days, DaysAsNumber) -> banner, print_results(DaysAsNumber);
+    number(Rest) -> banner, print_results(Rest);
     Rest = [_] -> usage.
 
 main(_, _) :- !, usage.
