@@ -1,4 +1,20 @@
+/**
+ * Mikael Dunhem
+ * CS 355 - Summer 2017
+ * Assignment 2 - THE CALCULUS OF CONVENTIONAL WAR: DYNAMIC ANALYSIS WITHOUT LANCHESTER THEORY
+ *
+ * All of the necessary equations listed in the paper are represented here. They are labled
+ * with the same lables used in the paper. Each one stores it's results in a list in order
+ * to prevent an excessively large call stack since each equation will be called recursively.
+ * This way, the calculation will only be performed once per "Day" (day of warfare.)
+ *
+ * Equations A-8 and A-9 were omitted since they are not needed. They are only used if
+ * omitting airpower from the calculation, which in this case, is not.
+ */
 
+/**
+ * Store all values that do not change in a constant rule.
+ */
 constant(w_max, 20.0).
 constant(p, 1.5).
 constant(l, 47490).
@@ -135,16 +151,6 @@ attacker_total_ground_lethality_attrition_rate(Day, AttritionRate) :-
         append(CurrentList, [AttritionRate], NewList),
         asserta(attacker_total_ground_lethality_attrition_rate_list(NewList))
     ).
-
-/**
- * (A-8)
- */
-
-
-/**
- * (A-9)
- */
-
 
 /**
  * (A-10)

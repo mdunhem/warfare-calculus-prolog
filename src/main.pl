@@ -1,9 +1,14 @@
-% Mikael Dunhem
-% CS 355 - Summer 2017
-% Assignment 2 - THE CALCULUS OF CONVENTIONAL WAR: DYNAMIC ANALYSIS WITHOUT LANCHESTER THEORY
+/**
+ * Mikael Dunhem
+ * CS 355 - Summer 2017
+ * Assignment 2 - THE CALCULUS OF CONVENTIONAL WAR: DYNAMIC ANALYSIS WITHOUT LANCHESTER THEORY
+ */
 
 :- include('equations').
 
+/**
+ * Main entry point when called from executable
+ */
 main :-
     ( current_prolog_flag(os_argv, Argv) -> true; current_prolog_flag(argv, Argv) ),
     append([_, _, _, _, _, _], Rest, Argv),
@@ -36,6 +41,10 @@ usage :-
     writeln(' Options                                                      '),
     writeln('   number_of_days   -   Number of days to run the calculations').
 
+/**
+ * Counts up from CurrentDay to NumberOfDays and calls each equation to calculate
+ * and print out the results.
+ */
 compute_results(CurrentDay, NumberOfDays) :-
     ( CurrentDay =< NumberOfDays ->
         NextDay is CurrentDay + 1,
@@ -62,6 +71,9 @@ compute_results(CurrentDay, NumberOfDays) :-
         true
     ).
 
+/**
+ * Prints out the values from the calculation in a nice formatted way.
+ */
 print_row(
     Day,
     DefenderGroundLethality,
@@ -91,6 +103,9 @@ print_row(
     ),
     format('+~`-t~133|+ ~n', []).
 
+/**
+ * Prints the table header with lables.
+ */
 print_results(NumberOfDays) :-
     format('+~`-t~133|+ ~n', []),
     format(
