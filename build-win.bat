@@ -4,5 +4,5 @@ if not exist "%cd%\bin" mkdir %cd%\bin
 
 (
   echo @echo off
-  echo call swipl -q -t main -s "%cd%/src/main.pl" "%%1"
+  echo call swipl -q -t main -s "%cd%/src/main.pl" %%*
 ) > %cd%\bin\warfare.bat
