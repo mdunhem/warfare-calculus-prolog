@@ -26,8 +26,15 @@ banner :-
 
 usage :-
     banner,
-    writeln(' Usage: warfare <number_of_days>'),
-    writeln('        warfare').
+    writeln(' Executable Usage                                             '),
+    writeln('   ./bin/warfare days <number_of_days>                        '),
+    writeln('                                                              '),
+    writeln(' Loading from REPL                                            '),
+    writeln('   ["./src/main.pl"].                                         '),
+    writeln('   main(days, <number_of_days>).                              '),
+    writeln('                                                              '),
+    writeln(' Options                                                      '),
+    writeln('   number_of_days   -   Number of days to run the calculations').
 
 compute_results(CurrentDay, NumberOfDays) :-
     ( CurrentDay =< NumberOfDays ->
