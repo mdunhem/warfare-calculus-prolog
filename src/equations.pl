@@ -3,8 +3,8 @@
  * CS 355 - Summer 2017
  * Assignment 2 - THE CALCULUS OF CONVENTIONAL WAR: DYNAMIC ANALYSIS WITHOUT LANCHESTER THEORY
  *
- * All of the necessary equations listed in the paper are represented here. They are labled
- * with the same lables used in the paper. Each one stores it's results in a list in order
+ * All of the necessary equations listed in the paper are represented here. They are labeled
+ * with the same labeles used in the paper. Each one stores it's results in a list in order
  * to prevent an excessively large call stack since each equation will be called recursively.
  * This way, the calculation will only be performed once per "Day" (day of warfare.)
  *
@@ -36,7 +36,6 @@ attacker_ground_lethality(Day, Lethality) :-
     attacker_ground_lethality_list(CurrentList),
     ( nth1(Day, CurrentList, CurrentLethality) ->
         Lethality is CurrentLethality;
-
         PreviousDay is Day - 1,
         attacker_attrition_rate(PreviousDay, Attrition),
         d_CAS(PreviousDay, AttackerGroundLethalityKilled),
@@ -54,7 +53,6 @@ defender_ground_lethality(Day, Lethality) :-
     defender_ground_lethality_list(CurrentList),
     ( nth1(Day, CurrentList, CurrentLethality) ->
         Lethality is CurrentLethality;
-
         PreviousDay is Day - 1,
         constant(p, P),
         attacker_attrition_rate(PreviousDay, Attrition),
