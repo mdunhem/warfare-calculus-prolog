@@ -21,13 +21,13 @@ main(days, Rest) :-
 main(_, _) :- !, usage.
 
 banner :-
-    format('+~`-t~133|+ ~n', []),
+    format('+~`-t~95|+ ~n', []),
     format(
-        '|~t~s~t~133||~n',
+        '|~t~s~t~95||~n',
         ['THE CALCULUS OF CONVENTIONAL WAR: DYNAMIC ANALYSIS WITHOUT LANCHESTER THEORY']
     ),
-    format('|~t~s~t~133||~n', ['Mike Dunhem - CS 355, Summer 2017, Project 2']),
-    format('+~`-t~133|+ ~n', []).
+    format('|~t~s~t~95||~n', ['Mike Dunhem - CS 355, Summer 2017, Project 2']),
+    format('+~`-t~95|+ ~n', []).
 
 usage :-
     banner,
@@ -45,7 +45,8 @@ usage :-
  * Counts up from CurrentDay to NumberOfDays and calls each equation to calculate
  * and print out the results.
  */
-compute_results(CurrentDay, NumberOfDays) :-
+compute_results(CurrentDay, NumberOfDays) :- compute_results(CurrentDay, NumberOfDays, 0.0).
+compute_results(CurrentDay, NumberOfDays, Displacement) :-
     ( CurrentDay =< NumberOfDays ->
         NextDay is CurrentDay + 1,
         attacker_ground_lethality(CurrentDay, AttackerGroundLethality),
@@ -53,6 +54,7 @@ compute_results(CurrentDay, NumberOfDays) :-
         defender_surviving_CAS(CurrentDay, DCAS),
         attacker_surviving_CAS(CurrentDay, ACAS),
         defender_withdrawl_rate(CurrentDay, WithdrawlRate),
+        UpdatedDisplacement is Displacement + WithdrawlRate,
         attacker_total_ground_lethality_attrition_rate(CurrentDay, AttackerAttrition),
         defender_total_ground_lethality_attrition_rate(CurrentDay, DefenderAttrition),
         attacker_prosecution_rate(CurrentDay, AttackerProsecution),
@@ -64,10 +66,11 @@ compute_results(CurrentDay, NumberOfDays) :-
             AttackerAttrition,
             WithdrawlRate,
             DefenderAttrition,
+            UpdatedDisplacement,
             DCAS,
             ACAS
         ),
-        compute_results(NextDay, NumberOfDays);
+        compute_results(NextDay, NumberOfDays, UpdatedDisplacement);
         true
     ).
 
@@ -82,13 +85,14 @@ print_row(
     AttackerAttrition,
     WithdrawlRate,
     DefenderAttrition,
+    Displacement,
     DCAS,
     ACAS) :-
     AttackerProsecutionValue is AttackerProsecution * 100,
     AttackerAttritionValue is AttackerAttrition * 100,
     DefenderAttritionValue is DefenderAttrition * 100,
     format(
-        '|~t~D~t~5||~t~D~t~21||~t~D~t~37||~t~3f~t~53||~t~3f~t~69||~t~1f~t~85||~t~3f~t~101||~t~D~t~117||~t~D~t~133||~n',
+        '|~t~D~t~5||~t~D~t~15||~t~D~t~25||~t~3f~t~35||~t~3f~t~45||~t~1f~t~55||~t~3f~t~65||~t~1f~t~75||~t~D~t~85||~t~D~t~95||~n',
         [
             Day,
             round(DefenderGroundLethality),
@@ -97,20 +101,21 @@ print_row(
             AttackerAttritionValue,
             WithdrawlRate,
             DefenderAttritionValue,
+            Displacement,
             round(DCAS),
             round(ACAS)
         ]
     ),
-    format('+~`-t~133|+ ~n', []).
+    format('+~`-t~95|+ ~n', []).
 
 /**
  * Prints the table header with lables.
  */
 print_results(NumberOfDays) :-
-    format('+~`-t~133|+ ~n', []),
+    format('+~`-t~95|+ ~n', []),
     format(
-        '|~t~s~t~5||~t~s~t~21||~t~s~t~37||~t~s~t~53||~t~s~t~69||~t~s~t~85||~t~s~t~101||~t~s~t~117||~t~s~t~133||~n',
-        ['Day', 'Def Lethality','Att Lethality', 'Att Prosecution', 'Att Attrition', 'W Rate', 'Def Attrition', 'Def CAS', 'Att CAS']
+        '|~t~s~t~5||~t~s~t~15||~t~s~t~25||~t~s~t~35||~t~s~t~45||~t~s~t~55||~t~s~t~65||~t~s~t~75||~t~s~t~85||~t~s~t~95||~n',
+        ['Day', 'Dg(t)','Ag(t)', 'ag(t)', 'aa(t)', 'W(t)', 'ad(t)', 'SUM W', 'D CAS', 'A CAS']
     ),
-    format('+~`-t~133|+ ~n', []),
+    format('+~`-t~95|+ ~n', []),
     compute_results(1, NumberOfDays).
