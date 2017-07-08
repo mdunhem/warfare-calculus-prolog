@@ -40,38 +40,42 @@ compute_results(CurrentDay, NumberOfDays) :-
         defender_surviving_CAS(CurrentDay, _),
         attacker_surviving_CAS(CurrentDay, _),
         defender_withdrawl_rate(CurrentDay, _),
-        attacker_attrition_rate(CurrentDay, _),
+        attacker_total_ground_lethality_attrition_rate(CurrentDay, _),
+        attacker_prosecution_rate(CurrentDay, _),
         compute_results(NextDay, NumberOfDays);
         true
     ).
 
-print_row([], _, _, _, _, _).
+print_row([], _, _, _, _, _, _).
 print_row(
     [DefenderHead | DefenderTail],
     [AttackerHead | AttackerTail],
+    [AttackerProsecutionHead | AttackerProsecutionTail],
     [AttackerAttritionHead | AttackerAttritionTail],
     [WithdrawlHead | WithdrawlTail],
     [DCASHead | DCASTail],
     [ACASHead | ACASTail]) :-
+    AttackerProsecutionValue is AttackerProsecutionHead * 100,
     AttackerAttritionValue is AttackerAttritionHead * 100,
     format(
-        '|~t~D~t~16||~t~D~t~32||~t~3f~t~48||~t~1f~t~64||~t~D~t~80||~t~D~t~96||~n',
-        [round(DefenderHead), round(AttackerHead), AttackerAttritionValue, WithdrawlHead, round(DCASHead), round(ACASHead)]
+        '|~t~D~t~16||~t~D~t~32||~t~3f~t~48||~t~3f~t~64||~t~1f~t~80||~t~D~t~96||~t~D~t~112||~n',
+        [round(DefenderHead), round(AttackerHead), AttackerProsecutionValue, AttackerAttritionValue, WithdrawlHead, round(DCASHead), round(ACASHead)]
     ),
-    format('+~`-t~96|+ ~n', []),
-    print_row(DefenderTail, AttackerTail, AttackerAttritionTail, WithdrawlTail, DCASTail, ACASTail).
+    format('+~`-t~112|+ ~n', []),
+    print_row(DefenderTail, AttackerTail, AttackerProsecutionTail, AttackerAttritionTail, WithdrawlTail, DCASTail, ACASTail).
 
 print_results :-
-    format('+~`-t~96|+ ~n', []),
+    format('+~`-t~112|+ ~n', []),
     format(
-        '|~t~s~t~16||~t~s~t~32||~t~s~t~48||~t~s~t~64||~t~s~t~80||~t~s~t~96||~n',
-        ['Def Lethality','Att Lethality', 'Att Attrition', 'W Rate', 'Def CAS', 'Att CAS']
+        '|~t~s~t~16||~t~s~t~32||~t~s~t~48||~t~s~t~64||~t~s~t~80||~t~s~t~96||~t~s~t~112||~n',
+        ['Def Lethality','Att Lethality', 'Att Prosecution', 'Att Attrition', 'W Rate', 'Def CAS', 'Att CAS']
     ),
-    format('+~`-t~96|+ ~n', []),
+    format('+~`-t~112|+ ~n', []),
     attacker_ground_lethality_list(AttackerGroundLethality),
     defender_ground_lethality_list(DefenderGroundLethality),
     attacker_surviving_CAS_list(ACAS),
     defender_surviving_CAS_list(DCAS),
     defender_withdrawl_rate_list(WithdrawlRate),
-    attacker_attrition_rate_list(AttackerAttrition),
-    print_row(DefenderGroundLethality, AttackerGroundLethality, AttackerAttrition, WithdrawlRate, DCAS, ACAS).
+    attacker_total_ground_lethality_attrition_rate_list(AttackerAttrition),
+    attacker_prosecution_rate_list(AttackerProsecution),
+    print_row(DefenderGroundLethality, AttackerGroundLethality, AttackerProsecution, AttackerAttrition, WithdrawlRate, DCAS, ACAS).

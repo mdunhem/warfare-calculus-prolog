@@ -99,22 +99,35 @@ defender_total_ground_lethality_attrition_rate(Day, AttritionRate) :-
 /**
 * (A-6)
 */
-attacker_prosecution_rate(1, 0.02). % Base case
+attacker_prosecution_rate_list([0.02]).
 attacker_prosecution_rate(Day, ProsecutionRate) :-
-    PreviousDay is Day - 1,
-    constant(aat, AaT),
-    attacker_prosecution_rate(PreviousDay, PreviousProsecutionRate),
-    attacker_total_ground_lethality_attrition_rate(PreviousDay, AttackerTotalGroundLethalityAttritionRate),
-    ProsecutionRate is PreviousProsecutionRate - (((AaT - PreviousProsecutionRate) / AaT) * (AttackerTotalGroundLethalityAttritionRate - AaT)).
+    attacker_prosecution_rate_list(CurrentList),
+    ( nth1(Day, CurrentList, CurrentProsecutionRate) ->
+        ProsecutionRate is CurrentProsecutionRate;
+        PreviousDay is Day - 1,
+        constant(aat, AaT),
+        attacker_prosecution_rate(PreviousDay, PreviousProsecutionRate),
+        attacker_total_ground_lethality_attrition_rate(PreviousDay, AttackerTotalGroundLethalityAttritionRate),
+        ProsecutionRate is PreviousProsecutionRate - (((AaT - PreviousProsecutionRate) / AaT) * (AttackerTotalGroundLethalityAttritionRate - AaT)),
+        append(CurrentList, [ProsecutionRate], NewList),
+        asserta(attacker_prosecution_rate_list(NewList))
+    ).
 
 /**
 * (A-7)
 */
+attacker_total_ground_lethality_attrition_rate_list([]).
 attacker_total_ground_lethality_attrition_rate(Day, AttritionRate) :-
-    NextDay is Day + 1,
-    attacker_ground_lethality(Day, CurrentLethality),
-    attacker_ground_lethality(NextDay, TomorrowLethality),
-    AttritionRate is (CurrentLethality - TomorrowLethality) / CurrentLethality.
+    attacker_total_ground_lethality_attrition_rate_list(CurrentList),
+    ( nth1(Day, CurrentList, CurrentAttritionRate) ->
+        AttritionRate is CurrentAttritionRate;
+        NextDay is Day + 1,
+        attacker_ground_lethality(Day, CurrentLethality),
+        attacker_ground_lethality(NextDay, TomorrowLethality),
+        AttritionRate is (CurrentLethality - TomorrowLethality) / CurrentLethality,
+        append(CurrentList, [AttritionRate], NewList),
+        asserta(attacker_total_ground_lethality_attrition_rate_list(NewList))
+    ).
 
 /**
  * (A-8)
