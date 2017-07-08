@@ -20,11 +20,13 @@ main(debug, Rest) :-
 main(_, _) :- !, usage.
 
 banner :-
-    writeln('------------------------------------------------------------------------------'),
-    writeln(' THE CALCULUS OF CONVENTIONAL WAR: DYNAMIC ANALYSIS WITHOUT LANCHESTER THEORY '),
-    writeln('                Mike Dunhem - CS 355, Summer 2017, Project 2                  '),
-    writeln('------------------------------------------------------------------------------'),
-    writeln('').
+    format('+~`-t~133|+ ~n', []),
+    format(
+        '|~t~s~t~133||~n',
+        ['THE CALCULUS OF CONVENTIONAL WAR: DYNAMIC ANALYSIS WITHOUT LANCHESTER THEORY']
+    ),
+    format('|~t~s~t~133||~n', ['Mike Dunhem - CS 355, Summer 2017, Project 2']),
+    format('+~`-t~133|+ ~n', []).
 
 usage :-
     banner,
