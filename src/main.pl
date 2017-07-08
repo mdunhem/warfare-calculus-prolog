@@ -9,13 +9,9 @@ main :-
     append([_, _, _, _, _, _], Rest, Argv),
     ( Rest = [Command|SubArgs] -> main(Command, SubArgs); usage ).
 
-main(Days, _) :-
-    banner,
-    atom_number(Days, DaysAsNumber),
-    print_results(DaysAsNumber).
-
-main(debug, Rest) :-
-    writeln(Rest).
+main(days, Rest) :-
+    Rest = [Days], atom_number(Days, DaysAsNumber) -> banner, print_results(DaysAsNumber);
+    Rest = [_] -> usage.
 
 main(_, _) :- !, usage.
 
